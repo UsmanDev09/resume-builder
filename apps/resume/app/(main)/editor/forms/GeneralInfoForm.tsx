@@ -32,17 +32,9 @@ export default function GeneralFormSchema ({
     }, [form, resumeData, setResumeData])
     
     return (
-        <div className="p-4 space-y-6">
-            <div className="space-y-1.5 text-center">
-                <h2 className="text-2xl font-semibold">
-                    General Info
-                </h2>
-                <p className="text-sm text-muted-foregroun">
-                    These information will never appear on your resume
-                </p>
-            </div>
+        <div className="p-4 sm:p-6 space-y-4">
             <Form {...form}>
-                <form className="space-y-3">
+                <form className="space-y-4">
                     <FormField
                         control={form.control}
                         name="title"
@@ -67,7 +59,7 @@ export default function GeneralFormSchema ({
                                     <Input {...field} placeholder="A resume for applying to Google" />
                                 </FormControl>
                                 <FormDescription>
-                                    Describe what this resume if for
+                                    Describe what this resume is for
                                 </FormDescription>
                                 <FormMessage /> 
                             </FormItem>
@@ -75,7 +67,6 @@ export default function GeneralFormSchema ({
                     />
                 </form>
             </Form>
-
         </div>
     )
 }

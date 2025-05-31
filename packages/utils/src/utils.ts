@@ -246,3 +246,20 @@ export function mapReduxResumeToFormValues(reduxResume: Resume): Partial<ResumeV
 export function mapParsedResumeToResumeValues(parsedResume: Resume) {
   return mapParsedResumeToReduxFormat(parsedResume);
 }
+
+/**
+ * Strip HTML tags from text content
+ * Uses DOMParser on client-side for accurate parsing, regex fallback for server-side
+ */
+export function stripHtmlTags(html: string): string {
+  if (!html) return "";
+  
+  if (typeof window !== 'undefined') {
+    // Client-side: use DOMParser for accurate HTML parsing
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    return doc.body.textContent || "";
+  }
+  
+  // Server-side fallback: basic regex to remove HTML tags
+  return html.replace(/<[^>]*>/g, '');
+}

@@ -15,11 +15,24 @@ import {
 import useDimensions from "@resume/ui/hooks/use-dimensions";
 import cn from "@resume/ui/cn";
 import type { ResumeValues } from "utils/validations";
+import { stripHtmlTags } from "utils/utils";
+
 interface ResumePreviewProps {
   resumeData: ResumeValues;
   contentRef?: React.Ref<HTMLDivElement>;
   className?: string;
 }
+
+// Helper function to convert font size strings to pixel values
+const getFontSizeInPx = (size: string | undefined): number => {
+  switch (size) {
+    case "small": return 12;
+    case "medium": return 14;
+    case "large": return 16;
+    default: return 14;
+  }
+};
+
 export default function IT({
   resumeData,
   contentRef,
@@ -27,6 +40,10 @@ export default function IT({
 }: ResumePreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { width } = useDimensions(containerRef);
+
+  const primaryFontSize = getFontSizeInPx(resumeData.primaryFontSize);
+  const secondaryFontSize = getFontSizeInPx(resumeData.secondaryFontSize);
+
   return (
     <div
       ref={containerRef}
@@ -40,20 +57,27 @@ export default function IT({
         style={{
           zoom: (1 / 794) * width,
           fontFamily: resumeData.fontStyle,
+          fontSize: `${primaryFontSize}px`,
         }}
         ref={contentRef}
         id="resumePreviewContent"
       >
-        <HeaderSection resumeData={resumeData} />
-        <ContactSection resumeData={resumeData} />
+        <HeaderSection resumeData={resumeData} primaryFontSize={primaryFontSize} secondaryFontSize={secondaryFontSize} />
+        <ContactSection resumeData={resumeData} primaryFontSize={primaryFontSize} secondaryFontSize={secondaryFontSize} />
         <div className="grid grid-cols-[1.6fr_1fr] gap-8 p-8">
           <div className="space-y-8">
-            <WorkExperienceSection resumeData={resumeData} />
-            <VolunteerSection resumeData={resumeData} />
-            <EducationSection resumeData={resumeData} />
+            <WorkExperienceSection resumeData={resumeData} primaryFontSize={primaryFontSize} secondaryFontSize={secondaryFontSize} />
+            {/* <VolunteerSection resumeData={resumeData} primaryFontSize={primaryFontSize} secondaryFontSize={secondaryFontSize} /> */}
+            {(resumeData.projects?.length ?? 0) > 0 && (
+              <ProjectsSection resumeData={resumeData} primaryFontSize={primaryFontSize} secondaryFontSize={secondaryFontSize} />
+            )}
+            <EducationSection resumeData={resumeData} primaryFontSize={primaryFontSize} secondaryFontSize={secondaryFontSize} />
           </div>
           <div className="bg-gray-100 p-6 rounded space-y-8">
-            <ExpertiseSection resumeData={resumeData} />
+            <ExpertiseSection resumeData={resumeData} primaryFontSize={primaryFontSize} secondaryFontSize={secondaryFontSize} />
+            {(resumeData.certifications?.length ?? 0) > 0 && (
+              <CertificationsSection resumeData={resumeData} primaryFontSize={primaryFontSize} secondaryFontSize={secondaryFontSize} />
+            )}
             
             {/* {(resumeData.courses?.length ?? 0) > 0 && (
               <CoursesSection resumeData={resumeData} />
@@ -67,48 +91,76 @@ export default function IT({
     </div>
   );
 }
+
 interface ResumeSectionProps {
   resumeData: ResumeValues;
+  primaryFontSize?: number;
+  secondaryFontSize?: number;
 }
 
-function SectionIcon({ icon: Icon }: { icon: any }) {
+function SectionIcon({ icon: Icon, primaryColorHex }: { icon: any; primaryColorHex?: string }) {
   return (
-    <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center">
+    <div 
+      className="w-8 h-8 rounded-full flex items-center justify-center"
+      style={{ backgroundColor: primaryColorHex || "#2F3C43" }}
+    >
       <Icon className="w-6 h-6 text-white" />
     </div>
   );
 }
 
-function HeaderSection({ resumeData }: ResumeSectionProps) {
-  const { firstName, lastName, jobTitle } = resumeData;
+function HeaderSection({ resumeData, primaryFontSize, secondaryFontSize }: ResumeSectionProps) {
+  const { firstName, lastName, jobTitle, primaryColorHex,secondaryColorHex } = resumeData;
 
   if(!firstName && !lastName && !jobTitle) return; 
 
   return (
     <header className="p-8 pb-0">
-      <h1 className="text-4xl text-gray-800 mb-2">
+      <h1
+        className="text-gray-800 mb-2"
+        style={{ fontSize: `${Math.round((primaryFontSize || 14) * 2.86)}px` }}
+      >
         {firstName} {lastName}
       </h1>
-      <h2 className="text-xl text-[#40C4AA]">{jobTitle}</h2>
+      <h2
+        style={{
+          fontSize: `${Math.round((primaryFontSize || 14) * 1.43)}px`,
+          color: secondaryColorHex || "#28B4A3",
+        }}
+      >
+        {jobTitle}
+      </h2>
     </header>
   );
 }
 
-function ContactSection({ resumeData }: ResumeSectionProps) {
-  const { email, phone, city, summary,country } = resumeData;
+function ContactSection({ resumeData, primaryFontSize, secondaryFontSize }: ResumeSectionProps) {
+  const { email, phone, city, summary, country, primaryColorHex,secondaryColorHex } = resumeData;
 
   if(!(email && phone && city && summary && country)) return;
 
   return (
     <div className="space-y-0 p-2">
       {summary && (
-        <div className="bg-[#2D3748] text-white p-4 rounded-lg rounded-b-none">
+        <div
+          className="text-white p-4 rounded-lg rounded-b-none"
+          style={{
+            backgroundColor: primaryColorHex || "#2F3C43",
+            fontSize: `${secondaryFontSize || 12}px`,
+          }}
+        >
           <p className="leading-relaxed break-all whitespace-pre-wrap">
-            {summary}
+            {stripHtmlTags(summary || "")}
           </p>
         </div>
       )}
-      <div className="bg-[#40C4AA] text-white mt-6 p-4 flex items-center justify-center gap-8 rounded-b-lg">
+      <div
+        className="text-white mt-6 p-4 flex items-center justify-center gap-8 rounded-b-lg"
+        style={{
+          backgroundColor: secondaryColorHex || "#28B4A3",
+          fontSize: `${secondaryFontSize || 12}px`,
+        }}
+      >
         {email && (
           <div className="flex items-center gap-2">
             <Mail className="w-5 h-5 text-gray-300 fill-white" />
@@ -134,22 +186,49 @@ function ContactSection({ resumeData }: ResumeSectionProps) {
   );
 }
 
-function WorkExperienceSection({ resumeData }: ResumeSectionProps) {
-  const { workExperiences } = resumeData;
+function WorkExperienceSection({ resumeData, primaryFontSize, secondaryFontSize }: ResumeSectionProps) {
+  const { workExperiences, primaryColorHex,secondaryColorHex } = resumeData;
 
   if(!workExperiences) return;
 
   return (
     <section>
       <div className="flex items-center gap-2 mb-6">
-        <SectionIcon icon={Briefcase} />
-        <h2 className="text-xl font-bold">WORK EXPERIENCE</h2>
+        <SectionIcon icon={Briefcase} primaryColorHex={primaryColorHex} />
+        <h2
+          className="font-bold"
+          style={{
+            fontSize: `${Math.round((primaryFontSize || 14) * 1.43)}px`,
+          }}
+        >
+          WORK EXPERIENCE
+        </h2>
       </div>
       {resumeData.workExperiences?.map((exp, index) => (
         <div key={index} className="mb-6">
-          <h3 className="font-bold text-lg">{exp.position}</h3>
-          <div className="font-medium mb-1 text-lg">{exp.company}</div>
-          <div className="flex justify-between text-[#40C4AA] text-sm mb-2 italic">
+          <h3
+            className="font-bold"
+            style={{
+              fontSize: `${Math.round((primaryFontSize || 14) * 1.29)}px`,
+            }}
+          >
+            {exp.position}
+          </h3>
+          <div
+            className="font-medium mb-1"
+            style={{
+              fontSize: `${Math.round((primaryFontSize || 14) * 1.29)}px`,
+            }}
+          >
+            {exp.company}
+          </div>
+          <div
+            className="flex justify-between mb-2 italic"
+            style={{
+              fontSize: `${secondaryFontSize || 12}px`,
+              color: secondaryColorHex || "#28B4A3",
+            }}
+          >
             <span>
               {exp.startDate && formatDate(exp.startDate, "MMMM yyyy")} -{" "}
               {exp.endDate ? formatDate(exp.endDate, "MMMM yyyy") : "Present"}
@@ -158,7 +237,15 @@ function WorkExperienceSection({ resumeData }: ResumeSectionProps) {
               {resumeData.city}, {resumeData.country}
             </span>
           </div>
-          <ul className="list-disc list-inside marker:text-[#40C4AA] space-y-2 text-gray-600 break-all whitespace-pre-wrap">
+          <ul
+            className="list-disc list-inside space-y-2 text-gray-600 break-all whitespace-pre-wrap"
+            style={{ fontSize: `${secondaryFontSize || 12}px` }}
+          >
+            <style jsx>{`
+              ul li::marker {
+                color: ${secondaryColorHex || "#28B4A3"};
+              }
+            `}</style>
             {exp.description?.split("\n").map((item, i) => (
               <li key={i}>
                 <span>{item}</span>
@@ -171,39 +258,37 @@ function WorkExperienceSection({ resumeData }: ResumeSectionProps) {
   );
 }
 
+// function VolunteerSection({ resumeData, primaryFontSize, secondaryFontSize }: ResumeSectionProps) {
+//   const { primaryColorHex, } = resumeData;
+//   return (
+//     <section>
+//       <div className="flex items-center gap-2 mb-6">
+//         <SectionIcon icon={Heart} primaryColorHex={primaryColorHex} />
+//         <h2 className="font-bold" style={{ fontSize: `${Math.round((primaryFontSize || 14) * 1.43)}px` }}>VOLUNTEER EXPERIENCE</h2>
+//       </div>
+//       <div className="mb-6">
+//         <h3 className="font-bold" style={{ fontSize: `${Math.round((primaryFontSize || 14) * 1.29)}px` }}>Media Manager</h3>
+//         <div className="font-medium mb-1" style={{ fontSize: `${primaryFontSize || 14}px`, color: primaryColorHex || "#28B4A3" }}>Meals on Wheels</div>
+//         <div className="flex justify-between text-gray-600 mb-2" style={{ fontSize: `${secondaryFontSize || 12}px` }}>
+//           <span>2019 - Present</span>
+//           <span>San Francisco, CA</span>
+//         </div>
+//         <ul className="space-y-2 text-gray-600" style={{ fontSize: `${secondaryFontSize || 12}px` }}>
+//           <li className="flex items-start gap-2">
+//             <span style={{ color: primaryColorHex || "#28B4A3" }} className="mt-1.5">•</span>
+//             <span>
+//               Hold a volunteer position as a Media Manager, developing &
+//               implementing all targeted content for various media platforms.
+//             </span>
+//           </li>
+//         </ul>
+//       </div>
+//     </section>
+//   );
+// }
 
-function VolunteerSection({ resumeData }: ResumeSectionProps) {
-  return (
-    <section>
-      <div className="flex items-center gap-2 mb-6">
-        <SectionIcon icon={Heart} />
-        <h2 className="text-xl font-bold">VOLUNTEER EXPERIENCE</h2>
-      </div>
-      <div className="mb-6">
-        <h3 className="font-bold text-lg">Media Manager</h3>
-        <div className="text-[#40C4AA] font-medium mb-1">Meals on Wheels</div>
-        <div className="flex justify-between text-gray-600 text-sm mb-2">
-          <span>2019 - Present</span>
-          <span>San Francisco, CA</span>
-        </div>
-        <ul className="space-y-2 text-gray-600">
-          <li className="flex items-start gap-2">
-            <span className="text-[#40C4AA] mt-1.5">•</span>
-            <span>
-              Hold a volunteer position as a Media Manager, developing &
-              implementing all targeted content for various media platforms.
-            </span>
-          </li>
-        </ul>
-      </div>
-    </section>
-  );
-}
-
-
-function EducationSection({ resumeData }: ResumeSectionProps) {
-
-  const { educations, colorHex } = resumeData;
+function EducationSection({ resumeData, primaryFontSize, secondaryFontSize }: ResumeSectionProps) {
+  const { educations, primaryColorHex,secondaryColorHex } = resumeData;
 
   const educationsNotEmpty = educations?.filter(
     (edu) => Object.values(edu).filter(Boolean).length > 0,
@@ -214,14 +299,37 @@ function EducationSection({ resumeData }: ResumeSectionProps) {
   return (
     <section>
       <div className="flex items-center gap-2 mb-6">
-        <SectionIcon icon={GraduationCap} />
-        <h2 className="text-xl font-bold">EDUCATION</h2>
+        <SectionIcon icon={GraduationCap} primaryColorHex={primaryColorHex} />
+        <h2
+          className="font-bold"
+          style={{
+            fontSize: `${Math.round((primaryFontSize || 14) * 1.43)}px`,
+          }}
+        >
+          EDUCATION
+        </h2>
       </div>
       {educations?.map((edu, index) => (
         <div key={index}>
-          <h3 className="font-bold text-gray-800">{edu.school}</h3>
-          <p className="text-gray-700">{edu.degree}</p>
-          <p className="text-gray-600 text-sm text-[#40C4AA] italic">
+          <h3
+            className="font-bold text-gray-800"
+            style={{ fontSize: `${primaryFontSize || 14}px` }}
+          >
+            {edu.school}
+          </h3>
+          <p
+            className="text-gray-700"
+            style={{ fontSize: `${secondaryFontSize || 12}px` }}
+          >
+            {edu.degree}
+          </p>
+          <p
+            className="text-gray-600 italic"
+            style={{
+              fontSize: `${secondaryFontSize || 12}px`,
+              color: secondaryColorHex || "#28B4A3",
+            }}
+          >
             {edu.startDate && formatDate(edu.startDate, "MMMM yyyy")} -{" "}
             {edu.endDate ? formatDate(edu.endDate, "MMMM yyyy") : "Present"}
           </p>
@@ -231,25 +339,142 @@ function EducationSection({ resumeData }: ResumeSectionProps) {
   );
 }
 
-function ExpertiseSection({ resumeData }: ResumeSectionProps) {
-  const {skills} = resumeData;
+function ExpertiseSection({ resumeData, primaryFontSize, secondaryFontSize }: ResumeSectionProps) {
+  const { skillSections, primaryColorHex } = resumeData;
 
-  if (!skills?.length) return null;
+  if (!skillSections?.length) return null;
 
   return (
     <section>
       <div className="flex items-center gap-2 mb-6">
-        <SectionIcon icon={Award} />
-        <h2 className="text-xl font-bold">AREAS OF EXPERTIES</h2>
+        <SectionIcon icon={Award} primaryColorHex={primaryColorHex} />
+        <h2 className="font-bold" style={{ fontSize: `${Math.round((primaryFontSize || 14) * 1.43)}px` }}>AREAS OF EXPERTISE</h2>
       </div>
-      <ul className="space-y-2">
-        {skills &&
-          skills.map((item, index) => (
-            <li key={index} className="text-gray-700">
-              {item}
-            </li>
-          ))}
-      </ul>
+      <div className="space-y-4">
+        {skillSections.map((section, index) => (
+          <div key={index}>
+            <h3 className="font-bold text-gray-800 mb-2" style={{ fontSize: `${primaryFontSize || 14}px` }}>{section.name}</h3>
+            <ul className="space-y-1">
+              {section.skills.map((skill, skillIndex) => (
+                <li key={skillIndex} className="text-gray-700" style={{ fontSize: `${secondaryFontSize || 12}px` }}>
+                  {skill}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ProjectsSection({ resumeData, primaryFontSize, secondaryFontSize }: ResumeSectionProps) {
+  const { projects, primaryColorHex,secondaryColorHex } = resumeData;
+
+  return (
+    <section>
+      <div className="flex items-center gap-2 mb-6">
+        <SectionIcon icon={Briefcase} primaryColorHex={primaryColorHex} />
+        <h2
+          className="font-bold"
+          style={{
+            fontSize: `${Math.round((primaryFontSize || 14) * 1.43)}px`,
+          }}
+        >
+          PROJECTS
+        </h2>
+      </div>
+      {projects?.map((project, index) => (
+        <div key={index} className="mb-6">
+          <h3
+            className="font-bold"
+            style={{
+              fontSize: `${Math.round((primaryFontSize || 14) * 1.29)}px`,
+            }}
+          >
+            {project.name}
+          </h3>
+          <div
+            className="font-medium mb-1"
+            style={{
+              fontSize: `${Math.round((primaryFontSize || 14) * 1.29)}px`,
+            }}
+          >
+            {project.role}
+          </div>
+          <div
+            className="mb-2 italic"
+            style={{
+              fontSize: `${secondaryFontSize || 12}px`,
+              color: secondaryColorHex || "#28B4A3",
+            }}
+          >
+            {project.startDate && formatDate(project.startDate, "MMMM yyyy")} -{" "}
+            {project.endDate
+              ? formatDate(project.endDate, "MMMM yyyy")
+              : "Present"}
+          </div>
+          {project.description && (
+            <div
+              className="text-gray-600 break-all whitespace-pre-wrap"
+              style={{ fontSize: `${secondaryFontSize || 12}px` }}
+            >
+              {project.description}
+            </div>
+          )}
+        </div>
+      ))}
+    </section>
+  );
+}
+
+function CertificationsSection({ resumeData, primaryFontSize, secondaryFontSize }: ResumeSectionProps) {
+  const { certifications, primaryColorHex,secondaryColorHex } = resumeData;
+
+  return (
+    <section>
+      <div className="flex items-center gap-2 mb-6">
+        <SectionIcon icon={Award} primaryColorHex={primaryColorHex} />
+        <h2
+          className="font-bold"
+          style={{
+            fontSize: `${Math.round((primaryFontSize || 14) * 1.43)}px`,
+          }}
+        >
+          CERTIFICATIONS
+        </h2>
+      </div>
+      <div className="space-y-3">
+        {certifications?.map((cert, index) => (
+          <div key={index}>
+            <div
+              className="font-medium"
+              style={{
+                fontSize: `${primaryFontSize || 14}px`,
+                color: secondaryColorHex || "#28B4A3",
+              }}
+            >
+              {cert.name}
+            </div>
+            <div
+              className="text-gray-600 italic"
+              style={{ fontSize: `${secondaryFontSize || 12}px` }}
+            >
+              {cert.source}
+            </div>
+            {cert.completionDate && (
+              <div
+                className="text-gray-500"
+                style={{
+                  fontSize: `${Math.round((secondaryFontSize || 12) * 0.83)}px`,
+                }}
+              >
+                {formatDate(cert.completionDate, "MMMM yyyy")}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     </section>
   );
 }

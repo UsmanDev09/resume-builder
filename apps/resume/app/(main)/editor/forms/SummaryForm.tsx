@@ -59,24 +59,15 @@ export default function SummaryForm({
       };
     
     return (
-        <div className="p-4 space-y-6">
-            <div className="space-y-1.5 text-center">
-                <h2 className="text-2xl font-semibold">
-                    Professional summary 
-                </h2>
-                <p className="text-sm text-muted-foregroun">
-                    Write a short introduction for your resume or let the AI generate one from your entered data. 
-                </p>
-            </div>
-
+        <div className="p-6 space-y-4">
             <Form {...form}>
-                <form className="space-y-3">
+                <form className="space-y-4">
                     <FormField
                         control={form.control}
                         name="summary"
                         render={({field}) => (
                             <FormItem>
-                                <FormLabel className="sr-only">
+                                <FormLabel>
                                     Professional Summary
                                 </FormLabel>
                                 <QuillToolbar

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { format } from "date-fns"
+import { formatDate } from "date-fns";
 
 import useDimensions from "@resume/ui/hooks/use-dimensions";
 
@@ -8,21 +8,41 @@ import cn from "@resume/ui/cn";
 import { ResumeValues } from "utils/validations"
 import { Badge } from "@resume/ui/badge";
 import { BorderStyles } from "../../(main)/editor/BorderStyleButton";
+import { stripHtmlTags } from "utils/utils";
 
-interface BasicProps {
+interface ResumePreviewProps {
     resumeData: ResumeValues;
     contentRef?: React.Ref<HTMLDivElement>;
     className?: string;
 }
 
-export default function Simple({
+interface ResumeSectionProps {
+    resumeData: ResumeValues;
+    primaryFontSize?: number;
+    secondaryFontSize?: number;
+}
+
+// Helper function to convert font size strings to pixel values
+const getFontSizeInPx = (size: string | undefined): number => {
+    switch (size) {
+        case "small": return 12;
+        case "medium": return 14;
+        case "large": return 16;
+        default: return 14;
+    }
+};
+
+export default function Basic({
     resumeData,
     contentRef,
     className,
-  }: BasicProps) {
+  }: ResumePreviewProps) {
     const containerRef = useRef<HTMLDivElement>(null);
   
     const { width } = useDimensions(containerRef);
+  
+    const primaryFontSize = getFontSizeInPx(resumeData.primaryFontSize);
+    const secondaryFontSize = getFontSizeInPx(resumeData.secondaryFontSize);
   
     return (
       <div
@@ -37,25 +57,28 @@ export default function Simple({
           style={{
             zoom: (1 / 794) * width,
             fontFamily: resumeData.fontStyle,
+            fontSize: `${primaryFontSize}px`,
           }}
           ref={contentRef}
           id="resumePreviewContent"
         >
-          <PersonalInfoHeader resumeData={resumeData} />
-          <SummarySection resumeData={resumeData} />
-          <WorkExperienceSection resumeData={resumeData} />
-          <EducationSection resumeData={resumeData} />
-          <SkillsSection resumeData={resumeData} />
+          <PersonalInfoHeader resumeData={resumeData} primaryFontSize={primaryFontSize} secondaryFontSize={secondaryFontSize} />
+          <SummarySection resumeData={resumeData} primaryFontSize={primaryFontSize} secondaryFontSize={secondaryFontSize} />
+          <WorkExperienceSection resumeData={resumeData} primaryFontSize={primaryFontSize} secondaryFontSize={secondaryFontSize} />
+          <EducationSection resumeData={resumeData} primaryFontSize={primaryFontSize} secondaryFontSize={secondaryFontSize} />
+          {(resumeData.projects?.length ?? 0) > 0 && (
+            <ProjectsSection resumeData={resumeData} primaryFontSize={primaryFontSize} secondaryFontSize={secondaryFontSize} />
+          )}
+          <SkillsSection resumeData={resumeData} primaryFontSize={primaryFontSize} secondaryFontSize={secondaryFontSize} />
+          {(resumeData.certifications?.length ?? 0) > 0 && (
+            <CertificationsSection resumeData={resumeData} primaryFontSize={primaryFontSize} secondaryFontSize={secondaryFontSize} />
+          )}
         </div>
       </div>
     );
   }
   
-  interface ResumeSectionProps {
-    resumeData: ResumeValues;
-  }
-  
-  function PersonalInfoHeader({ resumeData }: ResumeSectionProps) {
+  function PersonalInfoHeader({ resumeData, primaryFontSize, secondaryFontSize }: ResumeSectionProps) {
     const {
       photo,
       firstName,
@@ -65,7 +88,7 @@ export default function Simple({
       country,
       phone,
       email,
-      colorHex,
+      primaryColorHex,
       borderStyle,
     } = resumeData;
   
@@ -102,7 +125,8 @@ export default function Simple({
             <p
               className="text-3xl font-bold"
               style={{
-                color: colorHex,
+                color: primaryColorHex,
+                fontSize: `${Math.round((primaryFontSize || 14) * 2.14)}px`,
               }}
             >
               {firstName} {lastName}
@@ -110,13 +134,14 @@ export default function Simple({
             <p
               className="font-medium"
               style={{
-                color: colorHex,
+                color: primaryColorHex,
+                fontSize: `${Math.round((primaryFontSize || 14) * 1.43)}px`,
               }}
             >
               {jobTitle}
             </p>
           </div>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500" style={{ fontSize: `${secondaryFontSize || 12}px` }}>
             {city}
             {city && country ? ", " : ""}
             {country}
@@ -128,8 +153,8 @@ export default function Simple({
     );
   }
   
-  function SummarySection({ resumeData }: ResumeSectionProps) {
-    const { summary, colorHex } = resumeData;
+  function SummarySection({ resumeData, primaryFontSize, secondaryFontSize }: ResumeSectionProps) {
+    const { summary, primaryColorHex } = resumeData;
   
     if (!summary) return null;
   
@@ -138,26 +163,27 @@ export default function Simple({
         <hr
           className="border-2"
           style={{
-            borderColor: colorHex,
+            borderColor: primaryColorHex,
           }}
         />
         <div className="break-inside-avoid space-y-3">
           <p
             className="text-lg font-semibold"
             style={{
-              color: colorHex,
+              color: primaryColorHex,
+              fontSize: `${Math.round((primaryFontSize || 14) * 1.29)}px`,
             }}
           >
             Professional profile
           </p>
-          <div className="whitespace-pre-line text-sm">{summary}</div>
+          <div className="whitespace-pre-line text-sm" style={{ fontSize: `${secondaryFontSize || 12}px` }}>{stripHtmlTags(summary || "")}</div>
         </div>
       </>
     );
   }
   
-  function WorkExperienceSection({ resumeData }: ResumeSectionProps) {
-    const { workExperiences, colorHex } = resumeData;
+  function WorkExperienceSection({ resumeData, primaryFontSize, secondaryFontSize }: ResumeSectionProps) {
+    const { workExperiences, primaryColorHex } = resumeData;
   
     const workExperiencesNotEmpty = workExperiences?.filter(
       (exp) => Object.values(exp).filter(Boolean).length > 0,
@@ -170,14 +196,15 @@ export default function Simple({
         <hr
           className="border-2"
           style={{
-            borderColor: colorHex,
+            borderColor: primaryColorHex,
           }}
         />
         <div className="space-y-3">
           <p
             className="text-lg font-semibold"
             style={{
-              color: colorHex,
+              color: primaryColorHex,
+              fontSize: `${Math.round((primaryFontSize || 14) * 1.29)}px`,
             }}
           >
             Work experience
@@ -187,19 +214,20 @@ export default function Simple({
               <div
                 className="flex items-center justify-between text-sm font-semibold"
                 style={{
-                  color: colorHex,
+                  color: primaryColorHex,
+                  fontSize: `${primaryFontSize || 14}px`,
                 }}
               >
                 <span>{exp.position}</span>
                 {exp.startDate && (
                   <span>
-                    {format(new Date(exp?.startDate), "MM/yyyy")} - {" "}
-                    {exp.endDate ? format(new Date(exp?.endDate), "MM/yyyy") : "Present"}
+                    {formatDate(new Date(exp?.startDate), "MM/yyyy")} - {" "}
+                    {exp.endDate ? formatDate(new Date(exp?.endDate), "MM/yyyy") : "Present"}
                   </span>
                 )}
               </div>
-              <p className="text-xs font-semibold">{exp.company}</p>
-              <div className="whitespace-pre-line text-xs">{exp.description}</div>
+              <p className="text-xs font-semibold" style={{ fontSize: `${secondaryFontSize || 12}px` }}>{exp.company}</p>
+              <div className="whitespace-pre-line text-xs" style={{ fontSize: `${secondaryFontSize || 12}px` }}>{exp.description}</div>
             </div>
           ))}
         </div>
@@ -207,8 +235,8 @@ export default function Simple({
     );
   }
   
-  function EducationSection({ resumeData }: ResumeSectionProps) {
-    const { educations, colorHex } = resumeData;
+  function EducationSection({ resumeData, primaryFontSize, secondaryFontSize }: ResumeSectionProps) {
+    const { educations, primaryColorHex } = resumeData;
   
     const educationsNotEmpty = educations?.filter(
       (edu) => Object.values(edu).filter(Boolean).length > 0,
@@ -221,14 +249,15 @@ export default function Simple({
         <hr
           className="border-2"
           style={{
-            borderColor: colorHex,
+            borderColor: primaryColorHex,
           }}
         />
         <div className="space-y-3">
           <p
             className="text-lg font-semibold"
             style={{
-              color: colorHex,
+              color: primaryColorHex,
+              fontSize: `${Math.round((primaryFontSize || 14) * 1.29)}px`,
             }}
           >
             Education
@@ -238,19 +267,20 @@ export default function Simple({
               <div
                 className="flex items-center justify-between text-sm font-semibold"
                 style={{
-                  color: colorHex,
+                  color: primaryColorHex,
+                  fontSize: `${primaryFontSize || 14}px`,
                 }}
               >
                 <span>{edu.degree}</span>
                 {edu.startDate && (
                   <span>
                     {edu.startDate &&
-                      `${format(edu.startDate, "MM/yyyy")} ${edu.endDate ? `- ${format(edu.endDate, "MM/yyyy")}` : ""}`
+                      `${formatDate(edu.startDate, "MM/yyyy")} ${edu.endDate ? `- ${formatDate(edu.endDate, "MM/yyyy")}` : ""}`
                     }
                   </span>
                 )}
               </div>
-              <p className="text-xs font-semibold">{edu.school}</p>
+              <p className="text-xs font-semibold" style={{ fontSize: `${secondaryFontSize || 12}px` }}>{edu.school}</p>
             </div>
           ))}
         </div>
@@ -258,7 +288,7 @@ export default function Simple({
     );
   }
   
-  function SkillsSection({ resumeData }: ResumeSectionProps) {
+  function SkillsSection({ resumeData, primaryFontSize, secondaryFontSize }: ResumeSectionProps) {
     const { skillSections } = resumeData;
   
     if (!skillSections?.length) return null;
@@ -268,40 +298,150 @@ export default function Simple({
         <hr
           className="border-2"
           style={{
-            borderColor: resumeData.colorHex,
+            borderColor: resumeData.primaryColorHex,
           }}
         />
         <div className="break-inside-avoid space-y-3">
           <p
             className="text-lg font-semibold"
             style={{
-              color: resumeData.colorHex,
+              color: resumeData.primaryColorHex,
+              fontSize: `${Math.round((primaryFontSize || 14) * 1.29)}px`,
             }}
           >
             Skills
           </p>
           {skillSections.map((section, index) => (
             <div key={index} className="space-y-2">
-              <h3 className="font-bold text-sm">{section.name}</h3>
+              <h3 className="font-bold text-sm" style={{ fontSize: `${primaryFontSize || 14}px` }}>{section.name}</h3>
               <div className="flex flex-wrap gap-2">
                 {section.skills.map((skill, skillIndex) => (
                   <Badge
                     key={skillIndex}
                     className="rounded-md bg-black text-white hover:bg-black"
                     style={{
-                      backgroundColor: resumeData.colorHex,
+                      backgroundColor: resumeData.primaryColorHex,
                       borderRadius:
                         resumeData.borderStyle === BorderStyles.SQUARE
                           ? "0px"
                           : resumeData.borderStyle === BorderStyles.CIRCLE
                             ? "9999px"
                             : "8px",
+                      fontSize: `${secondaryFontSize || 12}px`,
                     }}
                   >
                     {skill}
                   </Badge>
                 ))}
               </div>
+            </div>
+          ))}
+        </div>
+      </>
+    );
+  }
+
+  function ProjectsSection({ resumeData, primaryFontSize, secondaryFontSize }: ResumeSectionProps) {
+    const { projects, primaryColorHex } = resumeData;
+
+    const projectsNotEmpty = projects?.filter(
+      (project) => Object.values(project).filter(Boolean).length > 0,
+    );
+
+    if (!projectsNotEmpty?.length) return null;
+
+    return (
+      <>
+        <hr
+          className="border-2"
+          style={{
+            borderColor: primaryColorHex,
+          }}
+        />
+        <div className="space-y-3">
+          <p
+            className="text-lg font-semibold"
+            style={{
+              color: primaryColorHex,
+              fontSize: `${Math.round((primaryFontSize || 14) * 1.29)}px`,
+            }}
+          >
+            Projects
+          </p>
+          {projectsNotEmpty.map((project, index) => (
+            <div key={index} className="break-inside-avoid space-y-1">
+              <div
+                className="flex items-center justify-between text-sm font-semibold"
+                style={{
+                  color: primaryColorHex,
+                  fontSize: `${primaryFontSize || 14}px`,
+                }}
+              >
+                <span>{project.name}</span>
+                {project.startDate && (
+                  <span>
+                    {formatDate(new Date(project?.startDate), "MM/yyyy")} - {" "}
+                    {project.endDate ? formatDate(new Date(project?.endDate), "MM/yyyy") : "Present"}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs font-semibold" style={{ fontSize: `${secondaryFontSize || 12}px` }}>{project.role}</p>
+              {project.description && (
+                <div className="whitespace-pre-line text-xs" style={{ fontSize: `${secondaryFontSize || 12}px` }}>{project.description}</div>
+              )}
+            </div>
+          ))}
+        </div>
+      </>
+    );
+  }
+
+  function CertificationsSection({ resumeData, primaryFontSize, secondaryFontSize }: ResumeSectionProps) {
+    const { certifications, primaryColorHex } = resumeData;
+
+    const certificationsNotEmpty = certifications?.filter(
+      (cert) => Object.values(cert).filter(Boolean).length > 0,
+    );
+
+    if (!certificationsNotEmpty?.length) return null;
+
+    return (
+      <>
+        <hr
+          className="border-2"
+          style={{
+            borderColor: primaryColorHex,
+          }}
+        />
+        <div className="space-y-3">
+          <p
+            className="text-lg font-semibold"
+            style={{
+              color: primaryColorHex,
+              fontSize: `${Math.round((primaryFontSize || 14) * 1.29)}px`,
+            }}
+          >
+            Certifications
+          </p>
+          {certificationsNotEmpty.map((cert, index) => (
+            <div key={index} className="break-inside-avoid space-y-1">
+              <div
+                className="flex items-center justify-between text-sm font-semibold"
+                style={{
+                  color: primaryColorHex,
+                  fontSize: `${primaryFontSize || 14}px`,
+                }}
+              >
+                <span>{cert.name}</span>
+                {cert.completionDate && (
+                  <span>
+                    {formatDate(new Date(cert?.completionDate), "MM/yyyy")}
+                  </span>
+                )}
+              </div>
+              {cert.source && (
+                <p className="text-xs font-semibold" style={{ fontSize: `${secondaryFontSize || 12}px` }}>{cert.source}</p>
+              )}
             </div>
           ))}
         </div>

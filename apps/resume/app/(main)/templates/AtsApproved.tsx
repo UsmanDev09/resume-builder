@@ -5,6 +5,7 @@ import Link from "next/link";
 import useDimensions from "@resume/ui/hooks/use-dimensions";
 import cn from "@resume/ui/cn";
 import type { ResumeValues } from "utils/validations";
+import { stripHtmlTags } from "utils/utils";
 
 interface ResumePreviewProps {
   resumeData: ResumeValues;
@@ -144,13 +145,9 @@ function SummarySection({ resumeData }: ResumeSectionProps) {
   return (
     <section>
       <h2 className="font-bold mb-2 uppercase">Professional Summary</h2>
-      {/* <p className="text-sm break-all whitespace-pre-wrap">
-        {summary}
-      </p> */}
-      <div
-        className="text-sm summary-content [&_p]:mb-2 [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_li]:mb-1 [&_strong]:font-semibold [&_em]:italic break-all whitespace-pre-wrap"
-        dangerouslySetInnerHTML={{ __html: resumeData.summary || "" }}
-      />
+      <div className="text-sm summary-content break-all whitespace-pre-wrap">
+        {stripHtmlTags(summary || "")}
+      </div>
     </section>
   );
 }

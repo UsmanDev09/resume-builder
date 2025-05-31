@@ -60,18 +60,9 @@ export default function WorkExperienceForm({
     }
 
     return (
-        <div className="p-4 space-y-6">
-            <div className="space-y-1.5 text-center">
-                <h2 className="text-2xl font-semibold">
-                    Work Experience
-                </h2>
-                <p className="text-sm text-muted-foregroun">
-                    Add as many work experiences as you like.
-                </p>
-            </div>
-            
+        <div className="p-4 sm:p-6 space-y-4">
             <Form {...form}>
-                <form className="space-y-3">
+                <form className="space-y-4">
                     <DndContext 
                         sensors={sensors}
                         collisionDetection={closestCenter}
@@ -104,8 +95,9 @@ export default function WorkExperienceForm({
                                 endDate: "",
                                 description: ""
                             })}
+                            className="w-full sm:max-w-sm"
                         >
-                            <Plus />
+                            <Plus className="h-4 w-4 mr-2" />
                             Add work experience
                         </Button>
                     </div>

@@ -44,7 +44,7 @@ export default function ResumePreviewSection({
     const TemplateComponent = templates[selectedTemplate] || Basic;
 
     return (
-        <div className={cn("group relative hidden w-full rounded-md md:flex", className)}>
+        <div className={cn("group relative w-full rounded-md flex", className)}>
              <TemplateComponent resumeData={resumeData} className={" bg-white shadow-md"}/>
         </div>
     )

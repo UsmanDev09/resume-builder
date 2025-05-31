@@ -5,8 +5,7 @@
     "build": "turbo run build",
     "dev": "turbo dev",
     "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "postinstall": "cd packages/database && turbo run db:generate && mkdir -p ../../node_modules/.pnpm/@prisma+client@6.1.0_prisma@6.1.0/@prisma/client && cp ../../node_modules/.pnpm/@prisma+client@6.1.0_prisma@6.1.0/node_modules/.prisma/client/libquery_engine-rhel-openssl-3.0.x.so.node ../../node_modules/.pnpm/@prisma+client@6.1.0_prisma@6.1.0/@prisma/client/"
+    "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "prisma": {
     "schema": "packages/database/prisma/schema.prisma"

@@ -10,6 +10,16 @@
   --background: #000;
 }
 
+/* Scrollbar hide utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /*
 
 @media (prefers-color-scheme: dark) {

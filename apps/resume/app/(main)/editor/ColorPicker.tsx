@@ -69,13 +69,13 @@ export default function ColorPicker( {
                 </div>
                 <div>
                     <label className="block text-sm font-medium mb-2">
-                    Secondary Color
+                        Secondary Color
                     </label>
                     <Input
-              type="color"
-              value={primaryColor}
-              onChange={handlePrimaryColorChange}
-            />
+                        type="color"
+                        value={secondaryColor}
+                        onChange={handleSecondaryColorChange}
+                    />
                 </div>
                 </div>
             </PopoverContent>
